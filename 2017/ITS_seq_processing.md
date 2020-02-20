@@ -43,7 +43,7 @@ Sequences detected as ITS by ITSx:      467538
 min length 140
 ~~~
 prinseq-lite.pl -fasta itsx/nac17.ITS1.fasta -min_len 140 -out_good nac_l140 -out_bad null -line_width 0
-~~~q
+~~~
 > Input sequences: 268,907
 >-	Good sequences: 240,412 (89.40%)
 
