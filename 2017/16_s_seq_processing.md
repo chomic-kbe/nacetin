@@ -20,20 +20,20 @@ usearch10 -fastq_mergepairs *R1_sorted.fastq -relabel @ -fastq_maxdiffs 10 -fast
 >-	464  Max
 
 >Totals:
->-   2759252  Pairs (2.8M)
->-   2425318  Merged (2.4M, 87.90%)
->-   2147057  Alignments with zero diffs (77.81%)
->-      4633  Too many diffs (> 10) (0.17%)
->-         0  Fwd tails Q <= 2 trimmed (0.00%)
->-      5884  Rev tails Q <= 2 trimmed (0.21%)
->-    329301  No alignment found (11.93%)
->-         0  Alignment too short (< 16) (0.00%)
->-       314  Staggered pairs (0.01%) merged & trimmed
->-     36.51  Mean alignment length
->-    443.47  Mean merged length
->-      0.18  Mean fwd expected errors
->-      0.32  Mean rev expected errors
->-      0.30  Mean merged expected errors
+>-	2759252  Pairs (2.8M)
+>-	2425318  Merged (2.4M, 87.90%)
+>-	2147057  Alignments with zero diffs (77.81%)
+>-	4633  Too many diffs (> 10) (0.17%)
+>-	0  Fwd tails Q <= 2 trimmed (0.00%)
+>-	5884  Rev tails Q <= 2 trimmed (0.21%)
+>-	329301  No alignment found (11.93%)
+>-	0  Alignment too short (< 16) (0.00%)
+>-	314  Staggered pairs (0.01%) merged & trimmed
+>-	36.51  Mean alignment length
+>-	443.47  Mean merged length
+>-	0.18  Mean fwd expected errors
+>-	0.32  Mean rev expected errors
+>-	0.30  Mean merged expected errors
 
 
 #### DEMULTIPLEXING 
