@@ -6,8 +6,9 @@ Workflow followed when processing 16S V4 region sequencing data
 
 ## RAW SEQUENCES PREPROCESS
 
-#### PAIRED-END JOINING
-performed in batch on demultiplexed reads split to file per sample
+#### PAIRED-END JOINING AND REMOVAL OF PRIMERS
+
+Join paired-ends (performed in batch on demultiplexed reads split to file per sample)
 ~~~
 usearch10 -fastq_mergepairs *R1_sorted.fastq -relabel @ -fastq_maxdiffs 10 -fastq_pctid 80 -fastqout merged.fastq -report log.txt
 ~~~
@@ -35,69 +36,91 @@ usearch10 -fastq_mergepairs *R1_sorted.fastq -relabel @ -fastq_maxdiffs 10 -fast
 >-	0.32  Mean rev expected errors
 >-	0.30  Mean merged expected errors
 
+#### REMOVAL OF PRIMERS
+Extract reads with reverse primers
+~~~
+cat ../merging/merged.fastq | fastx_barcode_splitter.pl --bcfile rev_primer.txt --bol --mismatches 0 --prefix out --suffix .fastq
+~~~
 
-#### DEMULTIPLEXING 
+>Barcode Count   Location
+>REV1    193072  outREV1.fastq
+>REV2    108934  outREV2.fastq
+>REV3    117106  outREV3.fastq
+>REV4    117756  outREV4.fastq
+>REV5    64982   outREV5.fastq
+>REV6    75697   outREV6.fastq
+>REV7    159976  outREV7.fastq
+>REV8    102229  outREV8.fastq
+>REV9    115068  outREV9.fastq
+>unmatched       1370498 outunmatched.fastq
+>total   2425318
+
+Extract reads with forward primer
 ~~~
-split_libraries_fastq.py -i out.join.fastq -o . -m map_gard2.txt -b out.barcodes.fastq --barcode_type 12 --rev_comp_mapping_barcodes --store_demultiplexed_fastq
+cat ../merging/merged.fastq | fastx_barcode_splitter.pl --bcfile fwd_primer.txt --bol --mismatches 0 --prefix out --suffix .fastq
 ~~~
 
-#### QUALITY FILTERING
-min. qual mean 25 (first trimmed right end at 25 quality), no N bases
-~~~
-prinseq-lite.pl -fastq gard.fastq -min_qual_mean 25 -ns_max_n 0 -trim_qual_right 25 -rm_header -out_format 4 -out_good gard_q25 -out_bad null -graph_data gard_q25.gd
-~~~
-> Input and filter stats:
->- 	Input sequences: 1,297,395
->-	Input bases: 327,560,803
->- 	Input mean length: 252.48
->- 	Good sequences: 1,297,380 (100.00%)
->- 	Good bases: 327,466,677
->-	Good mean length: 252.41
->- 	Bad sequences: 15 (0.00%)
->- 	Bad bases: 3,796
->- 	Bad mean length: 253.07
->- 	Sequences filtered by specified parameters:
->- 	min_qual_mean: 15
+>Barcode Count   Location
+>FWD1    154340  outFWD1.fastq
+>FWD2    195888  outFWD2.fastq
+>FWD3    81235   outFWD3.fastq
+>FWD4    121770  outFWD4.fastq
+>FWD5    176624  outFWD5.fastq
+>FWD6    221631  outFWD6.fastq
+>FWD7    135176  outFWD7.fastq
+>FWD8    178959  outFWD8.fastq
+>unmatched       1159695 outunmatched.fastq
+>total   2425318
 
-#### LENGTH FILTERING & TRIMMING
-min length 250, then trim to length 250
+Merge reads with reverse primer and make reverse complement
 ~~~
-prinseq-lite.pl -fasta gard_q25.fasta -min_len 250 -trim_to_len 250 -out_good gard_l250 -out_bad null -line_width 0
+cat outREV*.fastq > outREV.fastq; fastx_reverse_complement -i outREV.fastq -o outREV.rc.fastq
 ~~~
-> Input sequences: 1,297,380
->-	Good sequences: 1,270,992 (97.97%)
 
-Check trim
+Merge reads with forward primer
 ~~~
-prinseq-lite.pl -fasta gard_l250.fasta -stats_len -out_good null -out_bad null
+cat outFWD*.fastq > outFWD.fastq
 ~~~
->- stats_len	max	250
->- stats_len	mean	250.00
->- stats_len	median	250
->- stats_len	min	250
->- stats_len	mode	250
->- stats_len	modeval	1270992
->- stats_len	range	1
->- stats_len	stddev	0.00
 
+Compile final fastq
+~~~
+cat outREV.rc.fastq outFWD.fastq > nac17.fastq
+~~~
+
+#### QUALITY + LENGTH FILTERING & TRIMMING
+min. qual mean 25, no N bases, filter and trim to length of 400
+~~~
+prinseq-lite.pl -fastq nac17.fastq -out_good nac17_q25 -out_bad null -graph_data gd_nac17_q25.gd -out_format 4 -min_qual_mean 25 -rm_header -line_width 0 -ns_max_n 0 -min_len 400 -trim_to_len 400
+~~~
+>Input and filter stats:
+>-	Input sequences: 2,320,443
+>-	Input bases: 1,029,070,153
+>-	Input mean length: 443.48
+>-	Good sequences: 2,315,301 (99.78%)
+>-	Good bases: 926,120,400
+>-	Good mean length: 400.00
+>-	Bad sequences: 5,142 (0.22%)
+>-	Bad bases: 2,058,359
+>-	Bad mean length: 400.30
+>-	Sequences filtered by specified parameters:
+>-	min_len: 2404
+>-	min_qual_mean: 332
+>-	ns_max_n: 2406
 
 ## OTU CONSTRUCTION
-USEARCH needs “.” instead of “_” in the sequence header
-~~~
-sed 's/_/./g' gard_l250.fasta > seqs_dot.fna
-~~~
+
 Dereplication
 ~~~
 usearch81_64_new -derep_fulllength seqs_dot.fna -fastaout uniq.fna -sizeout
 ~~~
->-	1081190 seqs, 143920 uniques, 105527 singletons (73.3%)
->-	Min size 1, median 1, max 48818, avg 7.51
+>-	2315301 seqs, 937281 uniques, 826671 singletons (88.2%)
+>-	Min size 1, median 1, max 29347, avg 2.47
 	
 OTU clustering (97% similarity), singletons removed
 ~~~
 usearch81_64_new -cluster_otus uniq.fna -minsize 2 -otus otus.fna -relabel OTU -otu_radius_pct 3
 ~~~
->	5158 OTUs, 24103 chimeras (21.8%)
+>	2154 OTUs, 8993 chimeras (8.1%)
 
 ## TAXONOMY ASSIGNMENT
 Taxonomy assignment; Qiime - BLAST against SILVA v.132
@@ -131,15 +154,15 @@ OTU table construction
 ~~~
 usearch81_64_new -usearch_global seqs_dot.fna -db otus_tax.fna -strand plus -id 0.97 -otutabout otu_table.txt
 ~~~
->	1129175 / 1270992 mapped to OTUs (88.8%) 
+>	2046425 / 2315301 mapped to OTUs (88.4%) 
 
 ## BIOM table construction
 
 Convert UTAX taxonomy to phyloseq compatible
 - Separate taxonomy and sequence counts
 ~~~
-cut -f 64- otu_table.txt > tax.txt
-cut -f 1-63 otu_table.txt > abund.txt
+cut -f 66- otu_table.txt > tax.txt
+cut -f 1-65 otu_table.txt > abund.txt
 ~~~
 
 - Delete taxonomy level letters, change field separator from "," to ";", delete fileds containing "uncultured*", fill empty fields with "u_(lowest assigned level)".
@@ -164,83 +187,85 @@ biom convert -i otu_table_phyloseq.txt --to-hdf5 --table-type="OTU table" --proc
 biom summarize-table -i otu_table_phyloseq.biom -o otu_table_phyloseq_summary.txt 
 ~~~
 
->Num samples: 62
-Num observations: 5158
-Total count: 1129175
-Table density (fraction of non-zero values): 0.208
+>Num samples: 64
+Num observations: 2154
+Total count: 2046425
+Table density (fraction of non-zero values): 0.392
 
-> Counts/sample summary:
- Min: 26.0
- Max: 25698.0
- Median: 18263.500
- Mean: 18212.500
- Std. dev.: 4122.789
+>Counts/sample summary:
+ Min: 1700.0
+ Max: 55933.0
+ Median: 30922.000
+ Mean: 31975.391
+ Std. dev.: 10551.951
  Sample Metadata Categories: None provided
  Observation Metadata Categories: taxonomy
 
-> Counts/sample detail:
-575: 26.0
-576: 11319.0
-579: 11504.0
-538: 11926.0
-530: 12487.0
-573: 12530.0
-545: 12923.0
-581: 12976.0
-570: 13403.0
-553: 14098.0
-568: 15089.0
-569: 15897.0
-561: 16408.0
-528: 16641.0
-578: 16856.0
-537: 16935.0
-554: 17012.0
-546: 17160.0
-527: 17179.0
-582: 17299.0
-559: 17580.0
-552: 17632.0
-574: 17695.0
-562: 17701.0
-549: 17859.0
-547: 17944.0
-565: 17996.0
-541: 18019.0
-550: 18121.0
-544: 18202.0
-564: 18262.0
-529: 18265.0
-522: 18281.0
-536: 18318.0
-539: 18364.0
-521: 18396.0
-572: 18764.0
-571: 18878.0
-577: 18914.0
-555: 19260.0
-566: 19431.0
-534: 19734.0
-563: 19923.0
-524: 20216.0
-556: 20255.0
-531: 20257.0
-551: 20837.0
-523: 21136.0
-580: 21183.0
-535: 21218.0
-567: 21380.0
-542: 21911.0
-533: 22046.0
-543: 22241.0
-532: 23109.0
-525: 23163.0
-560: 23500.0
-548: 23536.0
-540: 23916.0
-557: 24839.0
-558: 25527.0
-526: 25698.0
+>Counts/sample detail:
+111: 1700.0
+110: 6065.0
+52: 13384.0
+112: 17230.0
+55: 19105.0
+98: 19965.0
+136: 20052.0
+131: 21565.0
+50: 23100.0
+49: 23354.0
+53: 23973.0
+43: 24272.0
+76: 24707.0
+54: 24785.0
+51: 25670.0
+125: 26041.0
+127: 26257.0
+130: 26754.0
+100: 26820.0
+56: 26897.0
+128: 27036.0
+132: 27460.0
+46: 27509.0
+71: 27635.0
+47: 28449.0
+134: 28622.0
+69: 28719.0
+137: 29653.0
+139: 29698.0
+44: 29853.0
+126: 30021.0
+42: 30823.0
+41: 31021.0
+72: 31268.0
+70: 31837.0
+109: 32062.0
+129: 32193.0
+48: 32620.0
+133: 33619.0
+45: 34314.0
+102: 34424.0
+83: 34438.0
+138: 34934.0
+101: 35224.0
+140: 35265.0
+79: 35611.0
+135: 36777.0
+77: 37115.0
+74: 37890.0
+84: 38421.0
+82: 40110.0
+81: 42347.0
+78: 43814.0
+73: 43911.0
+103: 44086.0
+106: 45020.0
+107: 45348.0
+80: 45636.0
+105: 48522.0
+75: 48551.0
+97: 49487.0
+104: 52576.0
+108: 54877.0
+99: 55933.0
 
 
 ### SOFTWARE USED
