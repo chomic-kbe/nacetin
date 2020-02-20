@@ -43,17 +43,17 @@ cat ../merging/merged.fastq | fastx_barcode_splitter.pl --bcfile rev_primer.txt 
 ~~~
 
 >Barcode Count   Location
->REV1    193072  outREV1.fastq
->REV2    108934  outREV2.fastq
->REV3    117106  outREV3.fastq
->REV4    117756  outREV4.fastq
->REV5    64982   outREV5.fastq
->REV6    75697   outREV6.fastq
->REV7    159976  outREV7.fastq
->REV8    102229  outREV8.fastq
->REV9    115068  outREV9.fastq
->unmatched       1370498 outunmatched.fastq
->total   2425318
+>-	REV1    193072  outREV1.fastq
+>-	REV2    108934  outREV2.fastq
+>-	REV3    117106  outREV3.fastq
+>-	REV4    117756  outREV4.fastq
+>-	REV5    64982   outREV5.fastq
+>-	REV6    75697   outREV6.fastq
+>-	REV7    159976  outREV7.fastq
+>-	REV8    102229  outREV8.fastq
+>-	REV9    115068  outREV9.fastq
+>-	unmatched       1370498 outunmatched.fastq
+>-	total   2425318
 
 Extract reads with forward primer
 ~~~
@@ -61,16 +61,16 @@ cat ../merging/merged.fastq | fastx_barcode_splitter.pl --bcfile fwd_primer.txt 
 ~~~
 
 >Barcode Count   Location
->FWD1    154340  outFWD1.fastq
->FWD2    195888  outFWD2.fastq
->FWD3    81235   outFWD3.fastq
->FWD4    121770  outFWD4.fastq
->FWD5    176624  outFWD5.fastq
->FWD6    221631  outFWD6.fastq
->FWD7    135176  outFWD7.fastq
->FWD8    178959  outFWD8.fastq
->unmatched       1159695 outunmatched.fastq
->total   2425318
+>-	FWD1    154340  outFWD1.fastq
+>-	FWD2    195888  outFWD2.fastq
+>-	FWD3    81235   outFWD3.fastq
+>-	FWD4    121770  outFWD4.fastq
+>-	FWD5    176624  outFWD5.fastq
+>-	FWD6    221631  outFWD6.fastq
+>-	FWD7    135176  outFWD7.fastq
+>-	FWD8    178959  outFWD8.fastq
+>-	unmatched       1159695 outunmatched.fastq
+>-	total   2425318
 
 Merge reads with reverse primer and make reverse complement
 ~~~
