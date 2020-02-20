@@ -13,11 +13,11 @@ usearch10 -fastq_mergepairs *R1_sorted.fastq -relabel @ -fastq_maxdiffs 10 -fast
 ~~~
 
 >Merged length distribution:
->-49  Min
->-440  Low quartile
->-440  Median
->-445  High quartile
->-464  Max
+>-	49  Min
+>-	440  Low quartile
+>-	440  Median
+>-	445  High quartile
+>-	464  Max
 
 Totals:
    2759252  Pairs (2.8M)
